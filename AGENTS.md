@@ -18,16 +18,17 @@ Read the fleet's distributed SendMessage protocol
 before messaging, asking, directing or answering another agent session
 on any host, and before running `herdr pane send-text`,
 `herdr pane run`, `herdr agent prompt` or `tmux send-keys` against a
-pane you did not create. Claude sessions talk to each other through
-Claude Code's `SendMessage` (across machines via Remote Control), never
-by typing into each other's panes (maintainer ruling 2026-11-14). A
-Codex agent cannot call `SendMessage`, and other sessions may still
-reach a Codex agent by typing into its pane. To reach a CLAUDE session,
-a Codex agent must NOT type into that session's pane: the fleet rule
-forbids it, and the Claude-side hook that enforces it does not run
-inside Codex, so nothing will stop you. Instead, record it as a ledger
-comment on the item or plan epic the Claude session owns, and do not
-assume it was read.
+pane you did not create. Claude sessions should prefer Claude Code's
+`SendMessage` (across machines via Remote Control) to message each
+other, because text typed into a pane can interrupt the maintainer.
+Typing into a pane is still allowed and nothing blocks it; use it when
+necessary (a slash command, a picker, a session `SendMessage` cannot
+reach, a Codex or pi seat) (maintainer ruling 2026-11-14). A Codex
+agent cannot call `SendMessage`, so other sessions reach a Codex agent
+by typing into its pane. To reach a Claude session, a Codex agent may
+type into that session's pane when necessary, or record it as a ledger
+comment on the item or plan epic the Claude session owns (do not assume
+a ledger comment was read).
 
 ## Layout
 
