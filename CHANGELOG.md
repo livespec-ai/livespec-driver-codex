@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/livespec-ai/livespec-driver-codex/compare/v0.13.1...v0.14.0) (2026-11-15)
+
+
+### Features
+
+* **config:** route petri runs and host mints through the livespec-ai org App ([d50bf23](https://github.com/livespec-ai/livespec-driver-codex/commit/d50bf230dc9f575ad92417fb717f0b482161c10a))
+
 ## [0.13.1](https://github.com/thewoolleyman/livespec-driver-codex/compare/v0.13.0...v0.13.1) (2026-11-12)
 
 
