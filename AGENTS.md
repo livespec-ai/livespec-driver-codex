@@ -8,13 +8,13 @@ architecture"). It is the Codex-runtime analog of
 `livespec-driver-claude`, and it is deliberately small. Everything
 substantive — the harness-neutral driving prose, the reference
 spec-side CLIs, the schemas, the templates — ships with livespec core
-(`thewoolleyman/livespec`); this repo only binds that material to the
+(`livespec-ai/livespec`); this repo only binds that material to the
 Codex runtime.
 
 ## Messaging other agent sessions
 
 Read the fleet's distributed SendMessage protocol
-(<https://github.com/thewoolleyman/livespec-dev-tooling/blob/master/%2Eai/distributed-sendmessage-protocol.md>)
+(<https://github.com/livespec-ai/livespec-dev-tooling/blob/master/%2Eai/distributed-sendmessage-protocol.md>)
 before messaging, asking, directing or answering another agent session
 on any host, and before running `herdr pane send-text`,
 `herdr pane run`, `herdr agent prompt` or `tmux send-keys` against a
@@ -315,15 +315,15 @@ path.
 
 ```bash
 # livespec CORE (spec-side prose + wrappers; no skills of its own):
-codex plugin marketplace add thewoolleyman/livespec
+codex plugin marketplace add livespec-ai/livespec
 codex plugin add livespec@livespec
 
 # This repo — the Codex Driver (supplies the /livespec:* operation surface):
-codex plugin marketplace add thewoolleyman/livespec-driver-codex
+codex plugin marketplace add livespec-ai/livespec-driver-codex
 codex plugin add livespec@livespec-driver-codex
 
 # The selected orchestrator plugin (supplies its own Codex skills):
-codex plugin marketplace add thewoolleyman/livespec-orchestrator-beads-fabro
+codex plugin marketplace add livespec-ai/livespec-orchestrator-beads-fabro
 codex plugin add livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro
 ```
 

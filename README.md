@@ -2,7 +2,7 @@
 
 Built with [livespec](https://livespec-ai.org/)
 
-The **Codex Driver** for [livespec](https://github.com/thewoolleyman/livespec)
+The **Codex Driver** for [livespec](https://github.com/livespec-ai/livespec)
 — the Codex-runtime analog of `livespec-driver-claude`, under
 livespec's contract + reference implementations architecture (per
 livespec `SPECIFICATION/spec.md` §"Contract + reference
@@ -45,9 +45,9 @@ Both plugins are required — core carries the prose and CLIs, this
 Driver carries the `/livespec:*` commands:
 
 ```
-codex plugin marketplace add thewoolleyman/livespec
+codex plugin marketplace add livespec-ai/livespec
 codex plugin add livespec@livespec
-codex plugin marketplace add thewoolleyman/livespec-driver-codex
+codex plugin marketplace add livespec-ai/livespec-driver-codex
 codex plugin add livespec@livespec-driver-codex
 ```
 

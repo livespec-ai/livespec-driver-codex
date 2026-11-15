@@ -369,7 +369,7 @@ def test_cli_e2e_full_round_trip_real_tier(*, impl_plugin_id: str, tmp_path: Pat
     shim = _manifest_shim(root=tmp_path)
     config = HarnessConfig(
         impl_plugin_id=impl_plugin_id,
-        marketplace="thewoolleyman/livespec-driver-codex",
+        marketplace="livespec-ai/livespec-driver-codex",
         enabled_plugins=(
             "livespec@livespec-driver-codex",
             f"{impl_plugin_id}@{impl_plugin_id}",
