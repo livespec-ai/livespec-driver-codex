@@ -19,7 +19,7 @@ follows.
 
 This Driver plugin ships ONLY bindings. The harness-neutral prose and
 the reference spec-side CLIs ship with **livespec core** — the
-`livespec` plugin from the `thewoolleyman/livespec` marketplace, which
+`livespec` plugin from the `livespec-ai/livespec` marketplace, which
 must be installed alongside this Driver. The plugin-root placeholder
 of THIS plugin resolves to the Driver's own root, which carries no
 `prose/` and no `scripts/` — NEVER use it for core paths. Resolve
@@ -54,7 +54,7 @@ for plugin in data.get("installed", []):
 fi
 if [ -z "$LIVESPEC_CORE_ROOT" ] || [ ! -d "$LIVESPEC_CORE_ROOT/prose" ]; then
   echo "livespec core not found. Install it first:" >&2
-  echo "  codex plugin marketplace add thewoolleyman/livespec" >&2
+  echo "  codex plugin marketplace add livespec-ai/livespec" >&2
   echo "  codex plugin add livespec@livespec" >&2
   exit 1
 fi
