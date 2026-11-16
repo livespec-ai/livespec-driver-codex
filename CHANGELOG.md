@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/livespec-ai/livespec-driver-codex/compare/v0.14.0...v0.14.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **pytest:** a passing test's tmp_path and tmp_path_factory files are removed so a suite run cannot exhaust a host's /tmp inodes (livespec-dev-tooling-jxhi63) ([b1e293a](https://github.com/livespec-ai/livespec-driver-codex/commit/b1e293a7058661a702b0cd28564c78d23ae63755))
+
 ## [0.14.0](https://github.com/livespec-ai/livespec-driver-codex/compare/v0.13.1...v0.14.0) (2026-11-15)
 
 
