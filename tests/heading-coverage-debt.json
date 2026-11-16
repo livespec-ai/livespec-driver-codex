@@ -58,13 +58,6 @@
   {
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "heading": "## Scenario: an already-open session keeps running its hooks after a covered plugin's installed content changes but its hooks do not",
-    "work_item": "livespec-driver-codex-nex26j",
-    "first_seen": "2026-11-03"
-  },
-  {
-    "spec_root": "SPECIFICATION",
-    "spec_file": "scenarios.md",
     "heading": "## Scenario: long-running hooks survive a cache update of any covered plugin",
     "work_item": "livespec-driver-codex-i433dm",
     "first_seen": "2026-11-02"

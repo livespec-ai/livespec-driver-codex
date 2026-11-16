@@ -330,8 +330,8 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "heading": "## Scenario: an already-open session keeps running its hooks after a covered plugin's installed content changes but its hooks do not",
-    "test": "TODO",
-    "reason": "TODO integration tier: an integration-tier test is owed by livespec-driver-codex-nex26j (replacing closed b5rhjf): a session started after a content-only change and release-tag-verified re-trust runs a covered plugin's hooks and its PreToolUse guard denies, while the already-open session reports each hook it cannot run as a visible hook failure; the test MUST capture the open session's visible output, because Codex does not write the hook-failure text to the rollout file. livespec-driver-codex-ans7n2 renames the heading to match the body once this test lands.",
+    "test": "tests.dev-tooling.test_codex_hook_trust_transition_real.test_content_only_change_retrusts_before_a_fresh_session_runs_the_guard",
+    "reason": "Integration-tier, opt-in real-Codex-TUI acceptance: it holds an old released payload open, installs a content-only successor whose hook bundle is byte-identical, withdraws trust, release-verifies hook definitions and entrypoints before reconciliation re-trusts them, preserves retained paths through latest, then observes a prompt-free fresh session whose PreToolUse guard denies the forbidden command and the old session's visible hook failure output.",
     "work_item": "livespec-driver-codex-nex26j"
   },
   {
