@@ -122,6 +122,12 @@ extraPaths = ["livespec/hooks"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# A suite run writes many files under pytest's basetemp on /tmp; kept pytest-N
+# directories exhausted a seat host's tmpfs inodes (2026-11-16,
+# livespec-dev-tooling-jxhi63). Keep only a failed test's tmp_path directory,
+# and only the latest run's basetemp.
+tmp_path_retention_policy = "failed"
+tmp_path_retention_count = 1
 # Names the coverage configuration for every pytest-cov run, so a run's branch
 # data and the data its test subprocesses record always combine: pytest-cov
 # hands subprocesses a config only by an existing path, and a bare `--cov` run
