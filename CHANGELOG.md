@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/livespec-ai/livespec-driver-codex/compare/v0.14.1...v0.15.0) (2026-11-17)
+
+
+### Features
+
+* red ([c944f29](https://github.com/livespec-ai/livespec-driver-codex/commit/c944f299538c395b3d1fe06541d69f87e47579de))
+
 ## [0.14.1](https://github.com/livespec-ai/livespec-driver-codex/compare/v0.14.0...v0.14.1) (2026-11-16)
 
 
