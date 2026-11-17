@@ -8,15 +8,20 @@ process.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import plistlib
 import subprocess
 import time
+from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path
 
+import codex_hook_cache_all
+import codex_hook_trust
 import pytest
+from _codex_hook_release_source import ReleasePayload
 from test_codex_hook_cache_fixtures import link_target, observer, write_payload
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -46,6 +51,113 @@ def test_a_completed_payload_change_triggers_reconciliation(cache: Path, state: 
 
     assert observer.run_loop(root=cache, state_path=state, iterations=1, poll=0.01) == 0
     assert link_target(path=cache / "latest") == "0.6.1"
+
+
+def test_persistent_observer_reconciles_a_default_hook_plugin_after_its_marketplace_update(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A non-Driver default hook bundle keeps paths and gains trust only from its release.
+
+    This is deliberately driven through the persistent all-plugin observer rather
+    than a direct reconciler call: the observer first sees the old payload, then
+    observes Codex's replacement of it before it performs the successor repair.
+    """
+    marketplace = "third-party-market"
+    plugin = "conditional-hooks"
+    home = tmp_path / "codex"
+    config = home / "config.toml"
+    config.parent.mkdir()
+    config.write_text(f"[marketplaces.{marketplace}]\n\n[hooks.state]\n", encoding="utf-8")
+    root = home / "plugins" / "cache" / marketplace / plugin
+    _write_default_conditional_hooks(root=root, version="1.0.0")
+    release = tmp_path / "release"
+    _write_default_conditional_hooks(root=release, version="1.0.0")
+    _write_default_conditional_hooks(root=release, version="1.1.0")
+    release_calls: list[str] = []
+
+    @contextlib.contextmanager
+    def released(
+        *, config_path: Path, marketplace: str, plugin: str, version: str
+    ) -> Iterator[ReleasePayload]:
+        assert config_path == config
+        assert (marketplace, plugin) == ("third-party-market", "conditional-hooks")
+        assert version in {"1.0.0", "1.1.0"}
+        release_calls.append(version)
+        yield ReleasePayload(payload=release / version, problem=None)
+
+    monkeypatch.setattr(codex_hook_cache_all, "release_payload", released)
+    pauses = 0
+
+    def advance_marketplace(_: float) -> None:
+        nonlocal pauses
+        pauses += 1
+        if pauses == 2:
+            _delete_tree(path=root / "1.0.0")
+            _write_default_conditional_hooks(root=root, version="1.1.0")
+
+    monkeypatch.setattr(observer.time, "sleep", advance_marketplace)
+
+    observer.run_all_loop(home=home, poll=0.0, iterations=4)
+
+    assert link_target(path=root / "1.0.0") == "latest"
+    assert link_target(path=root / "latest") == "1.1.0"
+    for entrypoint in ("guard.py", "stop.py"):
+        assert (root / "1.0.0" / "hooks" / entrypoint).resolve() == (
+            root / "1.1.0" / "hooks" / entrypoint
+        ).resolve()
+    assert release_calls == ["1.0.0", "1.1.0"]
+    assert codex_hook_trust.trust_status(
+        config_path=config,
+        marketplace=marketplace,
+        plugin=plugin,
+        payload=root / "1.1.0",
+    ).trusted
+
+    coverage = json.loads(
+        (REPO_ROOT / "tests" / "heading-coverage.json").read_text(encoding="utf-8")
+    )
+    row = next(
+        entry
+        for entry in coverage
+        if entry["heading"]
+        == "## Scenario: long-running hooks survive a cache update of any covered plugin"
+    )
+    assert row["test"] == (
+        "tests.dev-tooling.test_codex_hook_cache_observe."
+        "test_persistent_observer_reconciles_a_default_hook_plugin_after_its_marketplace_update"
+    )
+    debt = json.loads(
+        (REPO_ROOT / "tests" / "heading-coverage-debt.json").read_text(encoding="utf-8")
+    )
+    assert not any(
+        entry["heading"]
+        == "## Scenario: long-running hooks survive a cache update of any covered plugin"
+        for entry in debt
+    )
+
+
+def _write_default_conditional_hooks(*, root: Path, version: str) -> None:
+    """Build a default-hooks-only payload whose commands are guarded by a shell conditional."""
+    payload = write_payload(root=root, version=version)
+    manifest_path = payload / ".codex-plugin" / "plugin.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest.pop("hooks")
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    registration_path = payload / "hooks" / "hooks.json"
+    registration = json.loads(registration_path.read_text(encoding="utf-8"))
+    for groups in registration["hooks"].values():
+        for group in groups:
+            for handler in group["hooks"]:
+                command = handler["command"]
+                handler["command"] = f"if true; then {command}; fi"
+    registration_path.write_text(json.dumps(registration), encoding="utf-8")
+
+
+def _delete_tree(*, path: Path) -> None:
+    """Delete one test fixture tree without following its links."""
+    for child in sorted(path.rglob("*"), key=lambda item: len(item.parts), reverse=True):
+        child.rmdir() if child.is_dir() else child.unlink()
+    path.rmdir()
 
 
 def test_an_incomplete_payload_is_not_aliased(cache: Path, state: Path) -> None:
