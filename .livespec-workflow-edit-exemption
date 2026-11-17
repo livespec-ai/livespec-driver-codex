@@ -1,13 +1,13 @@
 # Workflow-edit exemption — one exemption binds to one reviewed change.
 #
-# The change (plan stale-base-merge-options, epic livespec-dev-tooling-xowhol,
-# carrier livespec-dev-tooling-frkuef): ci.yml gains the guarded merge_group
-# trigger so the org merge queue can run. It adds the merge_group trigger, a first
-# hosted merge-group-guard job, a guard-conditioned runs-on (hosted literal
-# fallback) on every gating job, and the guard in ci-green needs; it rewrites the
-# superseded "merge_group is deliberately ABSENT" comment. Logically additive:
-# the same jobs run, not significantly slower. The line-diff guard reads modified
-# lines as the maintainer tier, so the item needs approval:workflow-edit
-# (coordinator-duties §12).
-work_item=livespec-driver-codex-dwotop
-reason=Maintainer ruling 2026-11-16 to turn on the merge queue for every org repo; coordinator-authorized logically additive guarded merge_group trigger. actionlint 1.7.7 clean.
+# The change (plan stale-base-merge-options, epic livespec-dev-tooling-xowhol; rollout
+# carrier livespec-dev-tooling-ymog6r): ci.yml gains the merge-group tree-equality skip.
+# The guard job outputs `skip`, decided by livespec-dev-tooling's merge_group_skip module
+# fetched from the pinned release tarball; every gating job's `if:` gains
+# `&& needs.merge-group-guard.outputs.skip != 'true'`. Skip only for a single-entry group
+# whose head tree equals the PR head tree with every required check green on that head;
+# any doubt runs the full suite; kill switch LIVESPEC_MERGE_GROUP_SKIP_DISABLED.
+# Existing `if:` lines are modified, so this is the MAINTAINER tier (approval:workflow-edit),
+# which only the maintainer sets.
+work_item=livespec-driver-codex-52kois
+reason=Merge-group tree-equality skip rollout (guard skip output plus the skip term on every gating job's if), ratified by the maintainer 2026-11-16 on epic livespec-dev-tooling-xowhol; tier is maintainer.
