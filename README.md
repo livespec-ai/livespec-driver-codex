@@ -51,6 +51,8 @@ codex plugin marketplace add livespec-ai/livespec-driver-codex
 codex plugin add livespec@livespec-driver-codex
 ```
 
+Confirm both registrations with `codex plugin marketplace list`.
+
 The eight skills become available with the `livespec:` namespace
 prefix (the Driver plugin is deliberately NAMED `livespec` so the
 established `/livespec:*` surface is preserved):
