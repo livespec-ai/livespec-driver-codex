@@ -322,8 +322,8 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "heading": "## Scenario: long-running hooks survive a cache update of any covered plugin",
-    "test": "TODO",
-    "reason": "TODO integration tier: an integration-tier test is owed by livespec-driver-codex-i433dm (replacing closed esytmj). The existing tests.dev-tooling.test_codex_hook_cache_reconcile.test_reconcile_all_covers_registered_plugins_with_manifest_and_default_hooks covers only the path-continuity clause; the release-verified trust clause over this plugin and both Codex session clauses (a fresh session runs the plugin's hooks; an already-open session reports each hook it cannot run as a visible hook failure) are still owed.",
+    "test": "tests.dev-tooling.test_codex_hook_cache_observe.test_persistent_observer_reconciles_a_default_hook_plugin_after_its_marketplace_update",
+    "reason": "Integration-tier mock-cache acceptance: drives the persistent all-plugin observer across a non-Driver plugin's default-only shell-conditional hooks and marketplace replacement that deletes its old payload, verifies every retained path resolves through latest to the release-verified successor, and verifies trust is established only from that release payload. The fresh- and already-open-Codex-session checks remain host-captured because they require a real authenticated Codex CLI session and visible session output.",
     "work_item": "livespec-driver-codex-i433dm"
   },
   {
