@@ -327,6 +327,8 @@ codex plugin marketplace add livespec-ai/livespec-orchestrator-beads-fabro
 codex plugin add livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro
 ```
 
+Confirm the registrations with `codex plugin marketplace list`.
+
 These registrations persist HOST-WIDE in `~/.codex/config.toml` (a
 `[marketplaces.<name>]` entry plus a `[plugins."<plugin>@<marketplace>"]
 enabled = true` entry). The Driver plugin is deliberately NAMED
