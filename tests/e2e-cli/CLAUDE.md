@@ -24,5 +24,8 @@ in pyproject.toml); this directory only wires it into pytest.
 - `conftest.py` — sys.path setup, `GIT_*` env scrubbing, and the
   `mock_only` / `real_only` tier auto-skips.
 
+To add a skill, add its `livespec/skills/<op>/SKILL.md` and its
+`fixtures/<op>/prompt.md` in the same change, or the coverage gate fails.
+
 Run via `just check-e2e-cli` (mock tier; part of `just check` and the
 CI matrix).
