@@ -100,6 +100,11 @@ Missing or malformed owned evidence blocks completion. The exact real-user
 command `stop supervising <topic>` permits completion even when evidence is
 broken; unrelated user messages leave supervision in force.
 
+## Contributing
+
+Repository orientation, the gates and the worktree-to-pull-request flow are in
+`AGENTS.md`.
+
 ## Footgun guard
 
 The plugin ships a fail-open Codex PreToolUse hook
