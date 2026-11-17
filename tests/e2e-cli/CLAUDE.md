@@ -27,5 +27,7 @@ in pyproject.toml); this directory only wires it into pytest.
 To add a skill, add its `livespec/skills/<op>/SKILL.md` and its
 `fixtures/<op>/prompt.md` in the same change, or the coverage gate fails.
 
+The mock tier never needs the `codex` binary.
+
 Run via `just check-e2e-cli` (mock tier; part of `just check` and the
 CI matrix).
