@@ -683,9 +683,12 @@ def test_a_same_version_file_rewrite_changes_the_all_plugin_fingerprint(
     config.write_text("", encoding="utf-8")
     before = observer._all_fingerprint(root=cache, config_path=config)
     hooks_dir = payload / "hooks"
+    guard = hooks_dir / "guard.py"
     directory_marks = (hooks_dir.stat().st_atime_ns, hooks_dir.stat().st_mtime_ns)
+    guard_marks = (guard.stat().st_atime_ns, guard.stat().st_mtime_ns)
 
-    (hooks_dir / "guard.py").write_text("import sys\n\nsys.exit(1)\n", encoding="utf-8")
+    guard.write_text("import sys\n\nsys.exit(1)\n", encoding="utf-8")
+    os.utime(guard, ns=guard_marks)
     os.utime(hooks_dir, ns=directory_marks)
     os.utime(payload, ns=(payload.stat().st_atime_ns, payload.stat().st_mtime_ns))
 

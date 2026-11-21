@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 
@@ -25,7 +26,7 @@ def all_fingerprint(*, root: Path, config_path: Path) -> tuple[object, ...]:
     """Include file-level payload marks and the trust-record file.
 
     A directory's own mtime does not move when an existing file inside it is
-    rewritten, so each file's mtime and size are fingerprinted as well.
+    rewritten, so each file's mtime, size, and content digest are fingerprinted.
     """
     payload = fingerprint(root=root)
     files = tuple(
@@ -37,14 +38,17 @@ def all_fingerprint(*, root: Path, config_path: Path) -> tuple[object, ...]:
         return (*payload, files, ("config.toml", -1))
 
 
-def _tree_marks(top: Path) -> list[tuple[str, int, int]]:
-    marks: list[tuple[str, int, int]] = []
+def _tree_marks(top: Path) -> list[tuple[str, int, int, str]]:
+    marks: list[tuple[str, int, int, str]] = []
     for directory, _, names in os.walk(top, followlinks=False):
         for name in sorted(names):
             path = Path(directory) / name
             try:
                 stat = path.lstat()
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
             except OSError:
                 continue
-            marks.append((str(path.relative_to(top.parent)), stat.st_mtime_ns, stat.st_size))
+            marks.append(
+                (str(path.relative_to(top.parent)), stat.st_mtime_ns, stat.st_size, digest)
+            )
     return marks
