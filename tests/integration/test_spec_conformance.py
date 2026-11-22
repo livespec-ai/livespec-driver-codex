@@ -133,18 +133,18 @@ def test_versioning_plugin_json_is_the_sole_version_source() -> None:
 def test_factory_routing_committed_factories_are_registry_backed() -> None:
     """constraints.md "Factory routing": no committed factory entry names a machine.
 
-    `dispatcher.factories` carries exactly one entry — `petri` — which
-    declares `"registry": true` and carries no `server` and no
-    `docker_host` value, so which Fabro server answers to a name is bound only
-    in the fleet gitops inventory's factory registry that each dispatching host
-    renders as
-    `/etc/livespec/fabro-factories.json`. Control-armed: a third entry, a
-    differently-named entry, a missing `registry` flag, or a hostname-bearing
-    `server`/`docker_host` value all fail here.
+    Every entry of `dispatcher.factories` declares `"registry": true` and
+    carries no `server` and no `docker_host` value, so which Fabro server
+    answers to a name is bound only in the fleet gitops inventory's factory
+    registry that each dispatching host renders as
+    `/etc/livespec/fabro-factories.json`. Which names the table declares is an
+    operator dial, not a spec obligation, so this test does not pin the set.
+    Control-armed: an empty table, a missing `registry` flag, or a
+    hostname-bearing `server`/`docker_host` value all fail here.
     """
     factories = _committed_dispatcher()["factories"]
     assert isinstance(factories, dict), factories
-    assert list(factories) == ["petri"], list(factories)
+    assert factories, factories
     for entry in factories.values():
         assert entry.get("registry") is True, entry
         assert not entry.get("server"), entry
