@@ -67,6 +67,9 @@ exit 0
         "FAKE_DELEGATE_STATUS": str(delegate_status),
         "FAKE_LOG": str(log),
     }
+    # The gate Job exports LIVESPEC_GATE_CONTEXT, which makes the script under test
+    # skip delegation, so an inherited value is dropped to keep the cases hermetic.
+    environment.pop("LIVESPEC_GATE_CONTEXT", None)
     done = subprocess.run(
         ["bash", str(_PRE_COMMIT_SCRIPT)],
         cwd=tmp_path,

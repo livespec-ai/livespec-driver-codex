@@ -120,6 +120,10 @@ def test_green_token_match_runs_only_world_reading_members(tmp_path: Path) -> No
 def test_host_without_the_gates_credential_gates_locally_and_says_so(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    # A cluster gate Job exports LIVESPEC_GATE_CONTEXT, and the shared client then
+    # narrates "running inside the delegated gate Job" instead of the host answer
+    # under test, so an inherited value is scrubbed.
+    monkeypatch.delenv("LIVESPEC_GATE_CONTEXT", raising=False)
     monkeypatch.setenv("GATES_KUBECONFIG", str(tmp_path / "absent.kubeconfig"))
     monkeypatch.setattr(sys, "argv", ["gate_remote_delegate", "enabled"])
     monkeypatch.chdir(_REPO_ROOT)
