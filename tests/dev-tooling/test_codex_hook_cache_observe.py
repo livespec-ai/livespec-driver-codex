@@ -663,10 +663,21 @@ def test_macos_supervisor_check_rejects_a_missing_launchagent(tmp_path: Path) ->
     """Provisioning reports a missing LaunchAgent instead of claiming supervision."""
     commands = tmp_path / "commands"
     commands.mkdir()
+    home = tmp_path / "home"
+    installed_agent = (
+        home / "Library" / "LaunchAgents" / "com.livespec.codex-hook-cache-observer.plist"
+    )
+    assert not installed_agent.exists()
     scripts = {
         "codex": "#!/bin/sh\nexit 0\n",
         "uname": "#!/bin/sh\necho Darwin\n",
-        "launchctl": "#!/bin/sh\nexit 1\n",
+        "launchctl": (
+            "#!/bin/sh\n"
+            'test "$1" = print\n'
+            'test "$2" = "gui/$(id -u)/com.livespec.codex-hook-cache-observer"\n'
+            'test ! -f "$HOME/Library/LaunchAgents/com.livespec.codex-hook-cache-observer.plist"\n'
+            "exit 1\n"
+        ),
         "python3": "#!/bin/sh\nexit 0\n",
     }
     for name, body in scripts.items():
@@ -678,7 +689,11 @@ def test_macos_supervisor_check_rejects_a_missing_launchagent(tmp_path: Path) ->
         ["/usr/bin/bash", str(REPO_ROOT / "dev-tooling" / "ensure-codex-plugins.sh")],
         capture_output=True,
         check=False,
-        env={**os.environ, "PATH": f"{commands}:{os.environ['PATH']}"},
+        env={
+            **os.environ,
+            "HOME": str(home),
+            "PATH": f"{commands}:{os.environ['PATH']}",
+        },
         text=True,
     )
 
