@@ -13,6 +13,7 @@ import json
 import os
 import plistlib
 import subprocess
+import sys
 import time
 from collections.abc import Iterator
 from datetime import datetime
@@ -588,11 +589,18 @@ def test_macos_supervisor_check_rejects_a_detached_observer_beside_an_exited_lau
     calls = tmp_path / "calls"
     agent = REPO_ROOT / "dev-tooling" / "com.livespec.codex-hook-cache-observer.plist"
     assert agent.is_file()
+    home = tmp_path / "home"
+    installed_agent = home / "Library" / "LaunchAgents" / agent.name
+    installed_agent.parent.mkdir(parents=True)
+    installed_agent.write_bytes(agent.read_bytes())
     scripts = {
         "codex": "#!/bin/sh\nexit 0\n",
         "uname": "#!/bin/sh\necho Darwin\n",
         "launchctl": (
             '#!/bin/sh\nprintf \'%s\\n\' "launchctl $*" >> "$CALLS"\n'
+            'test "$1" = print\n'
+            'test "$2" = "gui/$(id -u)/com.livespec.codex-hook-cache-observer"\n'
+            'test -f "$HOME/Library/LaunchAgents/com.livespec.codex-hook-cache-observer.plist"\n'
             "printf 'state = exited\\npid = 4242\\n'\n"
         ),
         "python3": '#!/bin/sh\nprintf \'%s\\n\' "python3 $*" >> "$CALLS"\nexit 0\n',
@@ -602,9 +610,20 @@ def test_macos_supervisor_check_rejects_a_detached_observer_beside_an_exited_lau
         command.write_text(body, encoding="utf-8")
         command.chmod(0o755)
 
-    detached_observer = subprocess.Popen(["/usr/bin/bash", "-c", "exec sleep 60"])
+    detached_observer = subprocess.Popen(
+        [
+            sys.executable,
+            str(REPO_ROOT / "dev-tooling" / "codex_hook_cache_observe.py"),
+            "run",
+            "--all",
+            "--codex-home",
+            str(tmp_path / "codex"),
+        ],
+        start_new_session=True,
+    )
     try:
         assert detached_observer.poll() is None
+        assert os.getsid(detached_observer.pid) == detached_observer.pid
         result = subprocess.run(
             ["/usr/bin/bash", str(REPO_ROOT / "dev-tooling" / "ensure-codex-plugins.sh")],
             capture_output=True,
@@ -612,6 +631,7 @@ def test_macos_supervisor_check_rejects_a_detached_observer_beside_an_exited_lau
             env={
                 **os.environ,
                 "CALLS": str(calls),
+                "HOME": str(home),
                 "PATH": f"{commands}:{os.environ['PATH']}",
             },
             text=True,
