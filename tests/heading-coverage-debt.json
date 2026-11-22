@@ -64,13 +64,6 @@
   },
   {
     "spec_root": "SPECIFICATION",
-    "spec_file": "scenarios.md",
-    "heading": "## Scenario: on macOS ensure-codex-plugins reports an observer not running under the installed LaunchAgent",
-    "work_item": "livespec-driver-codex-5lwqdt",
-    "first_seen": "2026-11-03"
-  },
-  {
-    "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "heading": "## Lifecycle and evolution",
     "work_item": "livespec-driver-codex-cea",

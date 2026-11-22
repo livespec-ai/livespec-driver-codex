@@ -13,6 +13,7 @@ import json
 import os
 import plistlib
 import subprocess
+import sys
 import time
 from collections.abc import Iterator
 from datetime import datetime
@@ -25,6 +26,15 @@ from _codex_hook_release_source import ReleasePayload
 from test_codex_hook_cache_fixtures import link_target, observer, write_payload
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _detached_observer_env() -> dict[str, str]:
+    """Keep a real observer child outside this pytest run's coverage process."""
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if key != "COVERAGE_PROCESS_START" and not key.startswith("COV_CORE_")
+    }
 
 
 @pytest.fixture
@@ -577,6 +587,104 @@ def test_macos_supervisor_check_rejects_a_loaded_but_exited_launchagent(tmp_path
 
     assert result.returncode == 1
     assert "not running under the installed LaunchAgent" in result.stderr
+
+
+def test_macos_supervisor_check_rejects_a_detached_observer_beside_an_exited_launchagent(
+    tmp_path: Path,
+) -> None:
+    """An alive observer is not supervised merely because a LaunchAgent is installed."""
+    commands = tmp_path / "commands"
+    commands.mkdir()
+    calls = tmp_path / "calls"
+    agent = REPO_ROOT / "dev-tooling" / "com.livespec.codex-hook-cache-observer.plist"
+    assert agent.is_file()
+    home = tmp_path / "home"
+    installed_agent = home / "Library" / "LaunchAgents" / agent.name
+    installed_agent.parent.mkdir(parents=True)
+    installed_agent.write_bytes(agent.read_bytes())
+    scripts = {
+        "codex": "#!/bin/sh\nexit 0\n",
+        "uname": "#!/bin/sh\necho Darwin\n",
+        "launchctl": (
+            '#!/bin/sh\nprintf \'%s\\n\' "launchctl $*" >> "$CALLS"\n'
+            'test "$1" = print\n'
+            'test "$2" = "gui/$(id -u)/com.livespec.codex-hook-cache-observer"\n'
+            'test -f "$HOME/Library/LaunchAgents/com.livespec.codex-hook-cache-observer.plist"\n'
+            "printf 'state = exited\\npid = 4242\\n'\n"
+        ),
+        "python3": '#!/bin/sh\nprintf \'%s\\n\' "python3 $*" >> "$CALLS"\nexit 0\n',
+    }
+    for name, body in scripts.items():
+        command = commands / name
+        command.write_text(body, encoding="utf-8")
+        command.chmod(0o755)
+
+    detached_observer = subprocess.Popen(
+        [
+            sys.executable,
+            str(REPO_ROOT / "dev-tooling" / "codex_hook_cache_observe.py"),
+            "run",
+            "--all",
+            "--codex-home",
+            str(tmp_path / "codex"),
+        ],
+        env=_detached_observer_env(),
+        start_new_session=True,
+    )
+    try:
+        assert detached_observer.poll() is None
+        assert os.getsid(detached_observer.pid) == detached_observer.pid
+        result = subprocess.run(
+            ["/usr/bin/bash", str(REPO_ROOT / "dev-tooling" / "ensure-codex-plugins.sh")],
+            capture_output=True,
+            check=False,
+            env={
+                **os.environ,
+                "CALLS": str(calls),
+                "HOME": str(home),
+                "PATH": f"{commands}:{os.environ['PATH']}",
+            },
+            text=True,
+        )
+
+        assert result.returncode == 1
+        assert "not running under the installed LaunchAgent" in result.stderr
+        assert "supervised" not in result.stderr
+        assert detached_observer.poll() is None
+        recorded = calls.read_text(encoding="utf-8")
+        assert "launchctl print gui/" in recorded
+        assert "python3" not in recorded
+    finally:
+        detached_observer.terminate()
+        detached_observer.wait(timeout=5)
+
+
+def test_macos_supervisor_check_rejects_a_missing_launchagent(tmp_path: Path) -> None:
+    """Provisioning reports a missing LaunchAgent instead of claiming supervision."""
+    commands = tmp_path / "commands"
+    commands.mkdir()
+    scripts = {
+        "codex": "#!/bin/sh\nexit 0\n",
+        "uname": "#!/bin/sh\necho Darwin\n",
+        "launchctl": "#!/bin/sh\nexit 1\n",
+        "python3": "#!/bin/sh\nexit 0\n",
+    }
+    for name, body in scripts.items():
+        command = commands / name
+        command.write_text(body, encoding="utf-8")
+        command.chmod(0o755)
+
+    result = subprocess.run(
+        ["/usr/bin/bash", str(REPO_ROOT / "dev-tooling" / "ensure-codex-plugins.sh")],
+        capture_output=True,
+        check=False,
+        env={**os.environ, "PATH": f"{commands}:{os.environ['PATH']}"},
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "not running under an installed LaunchAgent" in result.stderr
+    assert "supervised" not in result.stderr
 
 
 def test_all_plugin_observer_uses_a_non_busy_poll_interval() -> None:
