@@ -579,6 +579,34 @@ def test_macos_supervisor_check_rejects_a_loaded_but_exited_launchagent(tmp_path
     assert "not running under the installed LaunchAgent" in result.stderr
 
 
+def test_macos_supervisor_check_rejects_a_missing_launchagent(tmp_path: Path) -> None:
+    """Provisioning reports a missing LaunchAgent instead of claiming supervision."""
+    commands = tmp_path / "commands"
+    commands.mkdir()
+    scripts = {
+        "codex": "#!/bin/sh\nexit 0\n",
+        "uname": "#!/bin/sh\necho Darwin\n",
+        "launchctl": "#!/bin/sh\nexit 1\n",
+        "python3": "#!/bin/sh\nexit 0\n",
+    }
+    for name, body in scripts.items():
+        command = commands / name
+        command.write_text(body, encoding="utf-8")
+        command.chmod(0o755)
+
+    result = subprocess.run(
+        ["/usr/bin/bash", str(REPO_ROOT / "dev-tooling" / "ensure-codex-plugins.sh")],
+        capture_output=True,
+        check=False,
+        env={**os.environ, "PATH": f"{commands}:{os.environ['PATH']}"},
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "not running under an installed LaunchAgent" in result.stderr
+    assert "supervised" not in result.stderr
+
+
 def test_all_plugin_observer_uses_a_non_busy_poll_interval() -> None:
     """The systemd all-plugin loop leaves meaningful time between cache scans."""
     assert observer.POLL_SECONDS >= 1.0
