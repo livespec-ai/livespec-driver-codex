@@ -23,13 +23,6 @@
   {
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "heading": "## Scenario: a covered plugin whose hook trust cannot be safely re-established is reported, not trusted",
-    "work_item": "livespec-driver-codex-hmfbv4",
-    "first_seen": "2026-11-03"
-  },
-  {
-    "spec_root": "SPECIFICATION",
-    "spec_file": "scenarios.md",
     "heading": "## Scenario: a crashing fail-closed guard inside the PreToolUse dispatcher still denies the call",
     "work_item": "livespec-driver-codex-b6har3",
     "first_seen": "2026-11-02"
