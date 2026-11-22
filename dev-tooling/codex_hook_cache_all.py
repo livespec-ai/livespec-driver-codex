@@ -53,7 +53,16 @@ def _reconcile_plugin(*, home: Path, marketplace: str, plugin: str, root: Path) 
         config_path=config_path, marketplace=marketplace, plugin=plugin, payload=payload
     )
     if status.problems:
-        return dataclasses.replace(paths, ok=False, problems=status.problems)
+        return dataclasses.replace(
+            paths,
+            ok=False,
+            problems=status.problems
+            + untrusted_hook_problems(
+                plugin=plugin,
+                payload=payload,
+                reason="unrecognized Codex trust record format",
+            ),
+        )
     if status.trusted:
         return paths
     with release_payload(
