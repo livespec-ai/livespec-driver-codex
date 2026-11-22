@@ -45,6 +45,23 @@ def provision_all(*, home: Path, expected_pid: int | None = None) -> int:
     results: list[bool] = []
     for marketplace, plugin, root in covered_plugin_roots(home=home):
         report = reports[(marketplace, plugin)]
+        if not report.ok:
+            # Codex currently has no host setting that refuses tool execution
+            # for an untrusted configured hook.  Do not let a provisioning
+            # failure look like a merely observational concern: until a later
+            # release-verified reconcile succeeds, the configured guards are
+            # not a protection boundary.
+            reconciler.emit(
+                event=(
+                    f"Codex will run tools without {plugin}'s guards until trust is "
+                    "re-established"
+                ),
+                level="info",
+                cache_root=str(root),
+                marketplace=marketplace,
+                plugin=plugin,
+                mode="provision",
+            )
         ok, why = health_after_provisioner(
             path=status_file(
                 state_path=reconciler.state_file(
