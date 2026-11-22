@@ -53,6 +53,88 @@ def test_a_completed_payload_change_triggers_reconciliation(cache: Path, state: 
     assert link_target(path=cache / "latest") == "0.6.1"
 
 
+def test_explicit_provisioning_reports_each_unverifiable_plugin_without_trusting_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Every unsafe trust case is reported while a sibling's alias still reconciles.
+
+    This drives the explicit all-plugin provisioner, rather than a direct trust
+    helper, so this scenario observes its end-user report and not merely a
+    lower-level trust result.
+    """
+    for case in ("mismatched", "untagged", "unrecognized"):
+        marketplace = f"market-{case}"
+        plugin = f"untrusted-{case}"
+        sibling = f"sibling-{case}"
+        home = tmp_path / case / "codex"
+        home.mkdir(parents=True)
+        config = home / "config.toml"
+        unrecognized_state = "stray = 1\n" if case == "unrecognized" else ""
+        config.write_text(
+            f"[marketplaces.{marketplace}]\n\n[marketplaces.siblings]\n\n"
+            f"[hooks.state]\n{unrecognized_state}",
+            "utf-8",
+        )
+        before = config.read_text("utf-8")
+        untrusted = write_payload(
+            root=home / "plugins" / "cache" / marketplace / plugin, version="1.0.0"
+        )
+        sibling_root = home / "plugins" / "cache" / "siblings" / sibling
+        write_payload(root=sibling_root, version="1.0.0")
+        release = tmp_path / case / "release"
+        write_payload(root=release / marketplace / plugin, version="1.0.0")
+        write_payload(root=release / "siblings" / sibling, version="1.0.0")
+        if case == "mismatched":
+            (untrusted / "hooks" / "guard.py").write_text("import sys\nsys.exit(1)\n", "utf-8")
+
+        @contextlib.contextmanager
+        def released(
+            *,
+            config_path: Path,
+            marketplace: str,
+            plugin: str,
+            version: str,
+            expected_config: Path = config,
+            scenario: str = case,
+            release_root: Path = release,
+        ) -> Iterator[ReleasePayload]:
+            assert config_path == expected_config
+            if scenario == "untagged" and plugin == f"untrusted-{scenario}":
+                yield ReleasePayload(payload=None, problem="release tag cannot be identified")
+            else:
+                yield ReleasePayload(
+                    payload=release_root / marketplace / plugin / version, problem=None
+                )
+
+        monkeypatch.setattr(codex_hook_cache_all, "release_payload", released)
+        for known_marketplace, known_plugin in ((marketplace, plugin), ("siblings", sibling)):
+            state_path = observer.reconciler.state_file(
+                marketplace=known_marketplace, plugin=known_plugin, codex_home_override=home
+            )
+            observer.write_status(
+                path=observer.status_file(state_path=state_path),
+                pid=os.getpid(),
+                last_error=None,
+                reconcile_completed_at_epoch=1.0,
+            )
+
+        assert observer.provision_all(home=home) == 1
+        report = capsys.readouterr().err
+
+        assert f'"plugin": "{plugin}"' in report
+        assert "hooks/hooks.json:PreToolUse" in report
+        assert "hooks/hooks.json:Stop" in report
+        assert "provisioner reconcile succeeded" not in report.split(f'"plugin": "{plugin}"')[0]
+        assert f'"{plugin}@{marketplace}:' not in config.read_text("utf-8")
+        assert link_target(path=sibling_root / "latest") == "1.0.0"
+        if case == "unrecognized":
+            assert config.read_text("utf-8") == before
+        assert (
+            "Codex will run tools without that plugin's guards until trust is re-established"
+            in report
+        )
+
+
 def test_persistent_observer_reconciles_a_default_hook_plugin_after_its_marketplace_update(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
