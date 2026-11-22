@@ -338,8 +338,8 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "heading": "## Scenario: a covered plugin whose hook trust cannot be safely re-established is reported, not trusted",
-    "test": "TODO",
-    "reason": "TODO integration tier: an integration-tier test is owed by livespec-driver-codex-hmfbv4 (replacing closed v52m6a): an unverifiable payload, an untagged plugin, or an unrecognized trust-record format leaves the plugin untrusted, reported, and never bypassed, the fail-closed setting is enabled where Codex exposes it, and sibling plugins still reconcile.",
+    "test": "tests.dev-tooling.test_codex_hook_cache_observe.test_explicit_provisioning_reports_each_unverifiable_plugin_without_trusting_it",
+    "reason": "Integration-tier mock-cache acceptance: drives explicit all-plugin provisioning for release-mismatched, untagged, and unrecognized-trust-record payloads; each unsafe plugin remains untrusted, is reported with every hook, and exits unhealthy while a sibling still reconciles. Codex currently exposes no fail-closed setting in this configuration surface, so the asserted no-fail-closed report warns that tools run without the plugin's guards until trust is re-established.",
     "work_item": "livespec-driver-codex-hmfbv4"
   },
   {
