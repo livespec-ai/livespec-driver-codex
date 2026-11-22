@@ -1,2 +1,4 @@
-work_item=livespec-driver-codex-gdfwtd
-reason=Widen the export-telemetry job condition so merge_group runs also emit ci.run spans to Honeycomb (maintainer ruling 2026-11-17; reference livespec-dev-tooling-pixkgb).
+work_item=livespec-driver-codex-uyc2tf
+reason=Add a job-level timeout-minutes: 30 line under each listed self-hosted CI job so a hung job is cancelled at its measured limit (fleet sweep of livespec-dev-tooling-u6jztk). Purely additive.
+change=additive
+ci_runtime=no-significant-increase
