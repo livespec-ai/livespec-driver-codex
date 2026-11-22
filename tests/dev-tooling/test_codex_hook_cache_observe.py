@@ -136,6 +136,62 @@ def test_persistent_observer_reconciles_a_default_hook_plugin_after_its_marketpl
     )
 
 
+def test_unverifiable_plugin_report_warns_that_tools_run_without_its_guards(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """An explicit provisioning failure makes an unguarded-tools warning visible.
+
+    The release's PreToolUse declaration differs from the installed payload while
+    a sibling plugin still has a matching release.  A live observer status lets
+    the provisioning report, rather than a missing watcher, be the visible
+    failure for the unverifiable plugin.
+    """
+    home = tmp_path / "codex"
+    config = home / "config.toml"
+    config.parent.mkdir()
+    config.write_text(
+        "[marketplaces.first]\n\n[marketplaces.second]\n\n[hooks.state]\n", encoding="utf-8"
+    )
+    broken = home / "plugins" / "cache" / "first" / "unverifiable"
+    sibling = home / "plugins" / "cache" / "second" / "healthy"
+    write_payload(root=broken, version="1.0.0")
+    write_payload(root=sibling, version="1.0.0")
+    release = tmp_path / "release"
+    broken_release = write_payload(root=release / "unverifiable", version="1.0.0")
+    write_payload(root=release / "healthy", version="1.0.0")
+    hooks = json.loads((broken_release / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    hooks["hooks"]["PreToolUse"][0]["hooks"][0]["command"] = (
+        'python3 "${CLAUDE_PLUGIN_ROOT}/hooks/released-guard.py"'
+    )
+    (broken_release / "hooks" / "hooks.json").write_text(json.dumps(hooks), encoding="utf-8")
+
+    @contextlib.contextmanager
+    def released(
+        *, config_path: Path, marketplace: str, plugin: str, version: str
+    ) -> Iterator[ReleasePayload]:
+        del marketplace
+        assert config_path == config
+        yield ReleasePayload(payload=release / plugin / version, problem=None)
+
+    monkeypatch.setattr(codex_hook_cache_all, "release_payload", released)
+    for marketplace, plugin in (("first", "unverifiable"), ("second", "healthy")):
+        state_path = observer.reconciler.state_file(
+            marketplace=marketplace, plugin=plugin, codex_home_override=home
+        )
+        observer.write_status(
+            path=observer.status_file(state_path=state_path),
+            pid=os.getpid(),
+            last_error=None,
+            reconcile_completed_at_epoch=1.0,
+        )
+
+    assert observer.provision_all(home=home) == 1
+
+    report = capsys.readouterr().out
+    warning = "Codex will run tools without unverifiable's guards until trust is re-established"
+    assert warning in report
+
+
 def _write_default_conditional_hooks(*, root: Path, version: str) -> None:
     """Build a default-hooks-only payload whose commands are guarded by a shell conditional."""
     payload = write_payload(root=root, version=version)
