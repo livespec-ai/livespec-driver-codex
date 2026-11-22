@@ -73,8 +73,14 @@ def provision_all(*, home: Path, expected_pid: int | None = None) -> int:
             provisioner_completed_at_epoch=report.completed_at_epoch or 0.0,
             expected_pid=expected_pid,
         )
+        event = why if ok else f"codex hook cache observer is NOT healthy — {why}"
+        if not ok:
+            event += (
+                "; Codex will run tools without that plugin's guards until trust "
+                "is re-established"
+            )
         reconciler.emit(
-            event=why if ok else f"codex hook cache observer is NOT healthy — {why}",
+            event=event,
             level="info" if ok else "error",
             cache_root=str(root),
             marketplace=marketplace,
