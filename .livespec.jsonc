@@ -381,6 +381,25 @@
             "app_id_secret": "ORG_GITHUB_APP_ID",
             "private_key_secret": "/livespec-ai/github/livespec-ai-factory-bot/private-key"
           }
+        },
+        // `candidate` is gmktec's fabro-server-candidate (:32278), the permanent
+        // mirror of `petri` (maintainer ruling 2026-11-02T19:22:32Z); its address
+        // comes from the factory registry. It mirrors livespec-dev-tooling's
+        // candidate block: `bin` is the 0.393 client for the build it serves, and
+        // the org App pair is named as `petri` names it so a run publishes as
+        // livespec-ai-factory-bot. It is never the default: choose it per dispatch
+        // with `--factory candidate`, and count its runs against the shared gmktec
+        // fleet cap. Declared for the bd-ib-orez2i canary's positive leg
+        // (throughput-plans-coordinator ruling, 2026-11-22).
+        "candidate": {
+          "registry": true,
+          "bin": "/home/ubuntu/.local/state/fabro-currency/carrier-petri-v0.393-613add19c/fabro",
+          "secret_channel": "native_secrets",
+          "environment": "factory-python",
+          "github_app": {
+            "app_id_secret": "ORG_GITHUB_APP_ID",
+            "private_key_secret": "/livespec-ai/github/livespec-ai-factory-bot/private-key"
+          }
         }
       },
       "default_factory": "petri"
