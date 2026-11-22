@@ -319,6 +319,9 @@ subprocess_spawn_allowlist = [
     # Cross-process lock and kill-mid-write behavior needs real processes; each
     # child gets an environment scrubbed of COVERAGE_PROCESS_START and COV_CORE_*.
     "tests/dev-tooling/test_codex_config_write.py",
+    # Witnesses a detached observer's process-session boundary; the child
+    # explicitly drops coverage instrumentation before it is spawned.
+    "tests/dev-tooling/test_codex_hook_cache_observe.py",
     "tests/hooks/test_block_auto_memory.py",
     "tests/hooks/test_livespec_footgun_guard.py",
     # Dispatcher parity is explicitly against each bare-python standalone hook;
