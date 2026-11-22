@@ -28,6 +28,15 @@ from test_codex_hook_cache_fixtures import link_target, observer, write_payload
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
+def _detached_observer_env() -> dict[str, str]:
+    """Keep a real observer child outside this pytest run's coverage process."""
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if key != "COVERAGE_PROCESS_START" and not key.startswith("COV_CORE_")
+    }
+
+
 @pytest.fixture
 def cache(tmp_path: Path) -> Path:
     """An empty versioned plugin-cache directory."""
@@ -619,6 +628,7 @@ def test_macos_supervisor_check_rejects_a_detached_observer_beside_an_exited_lau
             "--codex-home",
             str(tmp_path / "codex"),
         ],
+        env=_detached_observer_env(),
         start_new_session=True,
     )
     try:
