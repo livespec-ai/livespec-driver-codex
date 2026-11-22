@@ -27,7 +27,7 @@ Darwin)
     label="com.livespec.codex-hook-cache-observer"
     target="gui/$(id -u)/$label"
     if ! launchd_status="$(launchctl print "$target" 2>&1)"; then
-        echo "Codex hook-cache observer is not running under the installed LaunchAgent: $label" >&2
+        echo "Codex hook-cache observer is not running under an installed LaunchAgent: $label" >&2
         exit 1
     fi
     if [[ "$launchd_status" != *"state = running"* ]]; then

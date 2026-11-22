@@ -392,8 +392,8 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "heading": "## Scenario: on macOS ensure-codex-plugins reports an observer not running under the installed LaunchAgent",
-    "test": "TODO",
-    "reason": "TODO integration tier: an integration-tier test is owed by livespec-driver-codex-5lwqdt (replacing closed yudufr). tests.dev-tooling.test_codex_hook_cache_observe.test_macos_supervisor_check_rejects_a_loaded_but_exited_launchagent covers only an installed LaunchAgent whose job has exited; the detached-observer-alive precondition and the no-LaunchAgent-installed block are still owed.",
+    "test": "tests.dev-tooling.test_codex_hook_cache_observe.test_macos_supervisor_check_rejects_a_detached_observer_beside_an_exited_launchagent",
+    "reason": "Integration-tier witness: runs the real dev-tooling/ensure-codex-plugins.sh as on macOS with the shipped LaunchAgent present but exited beside an alive detached observer process, and asserts a non-zero exit, a report that it is not running under the installed LaunchAgent, no supervised claim, no observer invocation, and that the detached process remains alive. Companion test_macos_supervisor_check_rejects_a_missing_launchagent runs the same provisioner with launchctl print failing for no installed definition and asserts the non-zero report uses an installed LaunchAgent article without a supervised claim.",
     "work_item": "livespec-driver-codex-5lwqdt"
   },
   {
